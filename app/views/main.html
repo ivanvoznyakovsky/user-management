@@ -5,69 +5,118 @@
     <div class="col-xs-4">
         <div class="input-group">
             <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></span>
-            <input type="text" class="form-control" placeholder="Filter">
+            <input type="text" ng-model="filterVal.$" class="form-control" placeholder="Filter">
         </div>
     </div>
 </div>
-<ul class="pagination">
-    <li><a href="#">&laquo; Previous 10 users</a></li>
-    <li class="disabled"><span>Showing 11-20 of 22 users</span></li>
-    <li><a href="#">Next 10 users &raquo;</a></li>
-</ul>
-<table class="table table-striped">
-    <colgroup>
-        <col width="18%"/>
-        <col width="18%"/>
-        <col width="8%"/>
-        <col width="20%"/>
-        <col width="10%"/>
-        <col width="10%"/>
-        <col width="15%"/>
-    </colgroup>
-    <thead>
+<div class="row">
+    <div class="col-xs-6">
+        <paging total-items="users.length" ng-model="page"></paging>
+    </div>
+    <div class="col-xs-6">
+        <button type="button" class="btn btn-success btn-add-user" ng-click="createUser()">
+            <span class="glyphicon glyphicon-plus"></span>
+            Add user
+        </button>
+    </div>
+</div>
+
+<alert type="danger" closable="1" ng-show="error"><strong>Oh snap!</strong> {{error}}</alert>
+
+<form name="userFrm" novalidate>
+    <table class="table table-striped">
+        <colgroup>
+            <col width="15%"/>
+            <col width="15%"/>
+            <col width="8%"/>
+            <col width="20%"/>
+            <col width="10%"/>
+            <col width="10%"/>
+            <col width="*"/>
+            <col width="25%"/>
+        </colgroup>
+        <thead>
         <tr>
-            <th>Last Name</th>
-            <th>First Name</th>
-            <th>Age</th>
-            <th>Email</th>
-            <th>Created on</th>
-            <th>Last edited</th>
-            <th>Active</th>
+            <th><a ng-click="sortBy('lastName')">Last Name</a></th>
+            <th><a ng-click="sortBy('firstName')">First Name</a></th>
+            <th><a ng-click="sortBy('age')">Age</a></th>
+            <th><a ng-click="sortBy('email')">Email</a></th>
+            <th><a ng-click="sortBy('created')">Created on</a></th>
+            <th><a ng-click="sortBy('lastName')">Last edited</a></th>
+            <th><a ng-click="sortBy('isActive')">Active</a></th>
+            <th>&nbsp;</th>
         </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><input class="form-control" type="text" placeholder="Enter last name"/></td>
-            <td><input class="form-control" type="text" placeholder="Enter first name"/></td>
-            <td><input class="form-control" type="number" placeholder="Age"/></td>
-            <td><input class="form-control" type="email" placeholder="email@yourdomain.com"/></td>
+        </thead>
+        <tbody>
+        <tr ng-if="showNewUser && !editUserId">
+            <td><input ng-model="newUserModel.lastName" class="form-control" required type="text" placeholder="Enter last name"/></td>
+            <td><input ng-model="newUserModel.firstName" class="form-control" required type="text" placeholder="Enter first name"/></td>
+            <td><input ng-model="newUserModel.age" class="form-control" type="number" placeholder="Age"/></td>
+            <td><input ng-model="newUserModel.email" class="form-control" required type="email" placeholder="email@yourdomain.com"/></td>
             <td colspan="2"></td>
             <td>
-                <button type="button" class="btn btn-default btn-sm">
-                    <span class="glyphicon glyphicon-ok"></span>
-                </button>
-                <button type="button" class="btn btn-default btn-sm">
-                    <span class="glyphicon glyphicon-share"></span>
-                </button>
-                <button type="button" class="btn btn-default btn-sm">
-                    <span class="glyphicon glyphicon-ok-circle"></span>
-                </button>
+                <label class="btn btn-default btn-sm">
+                    <input type="checkbox" ng-model="newUserModel.isActive" value="1" ng-checked="newUserModel.isActive"/> Active
+                </label>
+            </td>
+            <td>
+                <div class="pull-right">
+                    <button type="button" class="btn btn-default btn-sm" ng-click="cancelCreateUser()">
+                        <span class="glyphicon glyphicon-remove"></span> Cancel
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" ng-click="saveUser()">
+                        <span class="glyphicon glyphicon-ok-circle"></span> Save
+                    </button>
+                </div>
             </td>
         </tr>
 
-        <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+        <tr ng-repeat="user in users | filter:filterVal | orderBy:sortColumn:sortReverse | startFrom:getOffset() | limitTo:itemsPerPage track by user.id">
+            <td>
+                <span ng-hide="editUserId === user.id">{{user.lastName}}</span>
+                <input type="text" class="form-control" ng-if="editUserId === user.id" ng-model="editUserModel.lastName" required/>
+            </td>
+            <td>
+                <span ng-hide="editUserId === user.id">{{user.firstName}}</span>
+                <input type="text" class="form-control" ng-if="editUserId === user.id" ng-model="editUserModel.firstName" required/>
+            </td>
+            <td>
+                <span ng-hide="editUserId === user.id">{{user.age}}</span>
+                <input type="number" class="form-control" ng-if="editUserId === user.id" ng-model="editUserModel.age"/>
+            </td>
+            <td>
+                <span ng-hide="editUserId === user.id">{{user.email}}</span>
+                <input type="email" class="form-control" ng-if="editUserId === user.id" ng-model="editUserModel.email" required/>
+            </td>
+            <td><span ng-hide="editUserId === user.id">{{user.created | date:'medium'}}</span></td>
+            <td><span ng-hide="editUserId === user.id">{{user.modified | date:'medium'}}</span></td>
+            <td>
+                <label class="btn btn-default btn-sm" ng-if="editUserId === user.id">
+                    <input type="checkbox" ng-model="editUserModel.isActive" value="editUserModel.isActive" ng-checked="editUserModel.isActive"/> Active
+                </label>
+                <div ng-hide="editUserId === user.id">
+                    <button type="button" class="btn btn-default disabled btn-sm" ng-if="user.isActive">
+                        <span class="glyphicon glyphicon-check"></span>
+                    </button>
+                </div>
+
+            </td>
+            <td>
+                <div ng-if="editUserId === user.id" class="pull-right">
+                    <button type="button" class="btn btn-default btn-sm" ng-click="cancelEditUser()">
+                        <span class="glyphicon glyphicon-remove"></span> Cancel
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" ng-click="updateUser()">
+                        <span class="glyphicon glyphicon-ok-circle"></span> Update
+                    </button>
+                </div>
+                <button type="button" class="btn btn-default btn-sm pull-right" ng-click="editUser()" ng-hide="editUserId === user.id">
+                    <span class="glyphicon glyphicon-pencil"></span> Edit
+                </button>
+            </td>
         </tr>
-    </tbody>
-</table>
-<ul class="pagination">
-    <li><a href="#">&laquo; Previous 10 users</a></li>
-    <li class="disabled"><span>Showing 11-20 of 22 users</span></li>
-    <li><a href="#">Next 10 users &raquo;</a></li>
-</ul>
+        </tbody>
+    </table>
+</form>
+
+<paging total-items="users.length" ng-model="page"></paging>
