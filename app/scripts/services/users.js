@@ -68,7 +68,7 @@ angular.module('testApp').service('UsersService', function ($http, $q) {
         ls.setItem('users', JSON.stringify(users));
     };
 
-    this.update = function (userData) {
+    this.update = function (userData, remove) {
         var users = getLocalUsers();
         if (!users || !users.length) {
             this.error = 'Error updating user: no users.'
@@ -80,16 +80,21 @@ angular.module('testApp').service('UsersService', function ($http, $q) {
             return false;
         }
 
-        if (index[userData.id]) {
-            users[index[userData.id]] = userData;
-        } else {
+        var idx = index[userData.id];
+        if (!idx) {
             for (var i = 0; i < users.length; i++) {
                 if (users[i].id == userData.id) {
-                    users[i] = userData;
                     index[userData.id] = i;
+                    idx = i;
                     break;
                 }
             }
+        }
+
+        if (remove) {
+            users.splice(idx, 1);
+        } else {
+            users[idx] = userData;
         }
 
         ls.setItem('users', JSON.stringify(users));

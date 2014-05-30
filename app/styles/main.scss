@@ -19,3 +19,9 @@ input.ng-valid.ng-dirty {
   float : right;
   margin-top : 20px;
 }
+
+.table-users {
+  tr {
+    @include user-select(none);
+  }
+}

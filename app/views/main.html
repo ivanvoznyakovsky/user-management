@@ -24,7 +24,8 @@
 <alert type="danger" closable="1" ng-show="error"><strong>Oh snap!</strong> {{error}}</alert>
 
 <form name="userFrm" novalidate>
-    <table class="table table-striped">
+    <p class="text-danger text-right"><small>* - click "Edit" button or double click a row to edit user</small></p>
+    <table class="table table-striped table-users">
         <colgroup>
             <col width="15%"/>
             <col width="15%"/>
@@ -42,7 +43,7 @@
             <th><a ng-click="sortBy('age')">Age</a></th>
             <th><a ng-click="sortBy('email')">Email</a></th>
             <th><a ng-click="sortBy('created')">Created on</a></th>
-            <th><a ng-click="sortBy('lastName')">Last edited</a></th>
+            <th><a ng-click="sortBy('modified')">Last edited</a></th>
             <th><a ng-click="sortBy('isActive')">Active</a></th>
             <th>&nbsp;</th>
         </tr>
@@ -71,7 +72,7 @@
             </td>
         </tr>
 
-        <tr ng-repeat="user in users | filter:filterVal | orderBy:sortColumn:sortReverse | startFrom:getOffset() | limitTo:itemsPerPage track by user.id">
+        <tr ng-dblclick="editUser()" ng-repeat="user in users | filter:filterVal | orderBy:sortColumn:sortReverse | startFrom:getOffset() | limitTo:itemsPerPage track by user.id">
             <td>
                 <span ng-hide="editUserId === user.id">{{user.lastName}}</span>
                 <input type="text" class="form-control" ng-if="editUserId === user.id" ng-model="editUserModel.lastName" required/>
@@ -106,17 +107,26 @@
                     <button type="button" class="btn btn-default btn-sm" ng-click="cancelEditUser()">
                         <span class="glyphicon glyphicon-remove"></span> Cancel
                     </button>
-                    <button type="button" class="btn btn-default btn-sm" ng-click="updateUser()">
+                    <button type="button" class="btn btn-default btn-sm" ng-disabled="!userFrm.$dirty" ng-click="restoreEditUser()">
+                        <span class="glyphicon glyphicon-repeat"></span> Restore
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" ng-disabled="!userFrm.$dirty" ng-click="updateUser()">
                         <span class="glyphicon glyphicon-ok-circle"></span> Update
                     </button>
                 </div>
-                <button type="button" class="btn btn-default btn-sm pull-right" ng-click="editUser()" ng-hide="editUserId === user.id">
-                    <span class="glyphicon glyphicon-pencil"></span> Edit
-                </button>
+                <div class="pull-right" ng-hide="editUserId === user.id">
+                    <button type="button" class="btn btn-default btn-sm" ng-click="editUser()">
+                        <span class="glyphicon glyphicon-edit"></span> Edit
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" ng-click="deleteUser()">
+                        <span class="glyphicon glyphicon-trash"></span> Delete
+                    </button>
+                </div>
             </td>
         </tr>
         </tbody>
     </table>
 </form>
+<p class="text-danger text-right"><small>* - click "Edit" button or double click a row to edit user</small></p>
 
 <paging total-items="users.length" ng-model="page"></paging>
