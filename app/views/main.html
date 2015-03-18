@@ -49,27 +49,30 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-if="showNewUser && !editUserId">
-            <td><input ng-model="newUserModel.lastName" class="form-control" required type="text" placeholder="Enter last name"/></td>
-            <td><input ng-model="newUserModel.firstName" class="form-control" required type="text" placeholder="Enter first name"/></td>
-            <td><input ng-model="newUserModel.age" class="form-control" type="number" placeholder="Age"/></td>
-            <td><input ng-model="newUserModel.email" class="form-control" required type="email" placeholder="email@yourdomain.com"/></td>
-            <td colspan="2"></td>
-            <td>
-                <label class="btn btn-default btn-sm">
-                    <input type="checkbox" ng-model="newUserModel.isActive" value="1" ng-checked="newUserModel.isActive"/> Active
-                </label>
-            </td>
-            <td>
-                <div class="pull-right">
-                    <button type="button" class="btn btn-default btn-sm" ng-click="cancelCreateUser()">
-                        <span class="glyphicon glyphicon-remove"></span> Cancel
-                    </button>
-                    <button type="button" class="btn btn-default btn-sm" ng-click="saveUser()">
-                        <span class="glyphicon glyphicon-ok-circle"></span> Save
-                    </button>
-                </div>
-            </td>
+        <tr ng-if="showNewUser && !editUserId" ng-form="newUserFrm">
+          <td>
+            <input ng-model="newUser.id" type="hidden"/>
+            <input ng-model="newUser.lastName" class="form-control" required type="text" placeholder="Enter last name"/>
+          </td>
+          <td><input ng-model="newUser.firstName" class="form-control" required type="text" placeholder="Enter first name"/></td>
+          <td><input ng-model="newUser.age" class="form-control" type="number" min="1" placeholder="Age"/></td>
+          <td><input ng-model="newUser.email" class="form-control" required type="email" placeholder="email@yourdomain.com"/></td>
+          <td colspan="2"></td>
+          <td>
+            <label class="btn btn-default btn-sm">
+              <input type="checkbox" ng-model="newUser.isActive" value="1" checked/> Active
+            </label>
+          </td>
+          <td>
+            <div class="pull-right">
+              <button type="button" class="btn btn-default btn-sm" ng-click="cancelCreateUser()">
+                <span class="glyphicon glyphicon-remove"></span> Cancel
+              </button>
+              <button type="button" class="btn btn-default btn-sm" ng-click="saveUser()" ng-disabled="newUserFrm.$invalid">
+                <span class="glyphicon glyphicon-ok-circle"></span> Save
+              </button>
+            </div>
+          </td>
         </tr>
 
         <tr ng-dblclick="editUser()" ng-repeat="user in users | filter:filterVal | orderBy:sortColumn:sortReverse | startFrom:getOffset() | limitTo:itemsPerPage track by user.id">
@@ -110,7 +113,7 @@
                     <button type="button" class="btn btn-default btn-sm" ng-disabled="!userFrm.$dirty" ng-click="restoreEditUser()">
                         <span class="glyphicon glyphicon-repeat"></span> Restore
                     </button>
-                    <button type="button" class="btn btn-default btn-sm" ng-disabled="!userFrm.$dirty" ng-click="updateUser()">
+                    <button type="button" class="btn btn-default btn-sm" ng-disabled="!userFrm.$dirty || userFrm.$invalid" ng-click="updateUser()">
                         <span class="glyphicon glyphicon-ok-circle"></span> Update
                     </button>
                 </div>

@@ -5,12 +5,10 @@ angular.module('testApp').controller('MainCtrl', function ($scope, $window, User
 
   $scope.users = [];
   $scope.showNewUser = false;
-  $scope.newUserModelTpl = {
-    isActive: 1
-  };
+  $scope.newUser = {};
+
   $scope.page = 1;
   $scope.itemsPerPage = 10;
-  $scope.totalItems = 0;
 
   $scope.sortReverse = false;
   $scope.sortColumn = '-created';
@@ -31,16 +29,21 @@ angular.module('testApp').controller('MainCtrl', function ($scope, $window, User
   };
 
   this.getUserIndexById = function (id) {
-    for (var i = 0; i < $scope.users.length; i++) {
-      if ($scope.users[i].id === id) {
-        return i;
+    var idx = false,
+        users = $scope.users,
+        i = users.length;
+
+    for (; i--;) {
+      if (users[i].id === id) {
+        idx = i;
+        break;
       }
     }
 
-    return -1;
+    return idx;
   };
 
-  this.resetEdit = function () {
+  $scope.cancelEditUser = function () {
     $scope.editUserId = null;
     $scope.editUserModel = null;
     $scope.userFrm.$setPristine();
@@ -48,9 +51,12 @@ angular.module('testApp').controller('MainCtrl', function ($scope, $window, User
     self.editUserIndex = -1;
   };
 
-  this.resetCreate = function () {
+  $scope.cancelCreateUser = function () {
     $scope.showNewUser = false;
-    $scope.newUserModel = null;
+
+    delete $scope.newUser;
+    $scope.newUser = {};
+
     $scope.userFrm.$setPristine();
     $scope.sortColumn = 'created';
     $scope.sortReverse = true;
@@ -58,28 +64,22 @@ angular.module('testApp').controller('MainCtrl', function ($scope, $window, User
 
   $scope.createUser = function () {
     $scope.showNewUser = true;
-    $scope.newUserModel = angular.copy($scope.newUserModelTpl);
-    $scope.newUserModel.id = 'user-' + Math.round(Math.random() * 100);
+    $scope.newUser.id = 'user-' + Math.round(Math.random() * 100);
   };
 
   $scope.saveUser = function () {
-    if ($scope.userFrm.$dirty && $scope.userFrm.$valid) {
-      if (UsersService.isEmailUnique($scope.newUserModel.email)) {
-        var date = (new Date()).getTime();
-        $scope.newUserModel.created = date;
-        $scope.newUserModel.modified = date;
-        $scope.users.push($scope.newUserModel);
-        UsersService.add($scope.newUserModel);
-        self.resetCreate();
-      } else {
-        $window.alert('Email "' + $scope.newUserModel.email + '" is already used.');
-        return false;
-      }
+    if (UsersService.isEmailUnique($scope.newUser.email)) {
+      var date = (new Date()).getTime(),
+          user = angular.copy($scope.newUser);
+      user.created = date;
+      user.modified = date;
+      $scope.users.push(user);
+      UsersService.add(user);
+      $scope.cancelCreateUser();
+    } else {
+      $window.alert('Email "' + $scope.newUser.email + '" is already used.');
+      return false;
     }
-  };
-
-  $scope.cancelCreateUser = function () {
-    self.resetCreate();
   };
 
   $scope.editUser = function () {
@@ -96,14 +96,14 @@ angular.module('testApp').controller('MainCtrl', function ($scope, $window, User
 
         var userIndex = self.getUserIndexById($scope.editUserModel.id);
 
-        if (userIndex !== -1) {
+        if (userIndex) {
           $scope.users[userIndex] = $scope.editUserModel;
           UsersService.update($scope.editUserModel);
         } else {
           $scope.error = 'User not found in set';
         }
 
-        self.resetEdit();
+        $scope.cancelEditUser();
       }
     } else {
       return false;
@@ -115,16 +115,12 @@ angular.module('testApp').controller('MainCtrl', function ($scope, $window, User
     $scope.userFrm.$setPristine();
   };
 
-  $scope.cancelEditUser = function () {
-    self.resetEdit();
-  };
-
   $scope.deleteUser = function () {
     if ($window.confirm('Are you sure?')) {
       var idx = self.getUserIndexById(this.user.id);
-      if (idx !== -1) {
+      if (idx) {
         $scope.users.splice(idx, 1);
-        UsersService.update(this.user, true);
+        UsersService.delete(this.user);
       }
     }
   };
@@ -143,7 +139,6 @@ angular.module('testApp').controller('MainCtrl', function ($scope, $window, User
   $scope.getUsers = function() {
     UsersService.get().then(function (users) {
       $scope.users = users;
-      $scope.totalItems = users.length;
     });
   };
 

@@ -41,12 +41,12 @@ angular.module('testApp').service('UsersService', function ($http, $q, $window) 
       return dfd.promise;
     } else {
       return $http.get('/data/users.json', {responseType: 'json'})
-        .then(function (data, status) {
-          if (status === 200) {
-            ls.setItem('users', JSON.stringify(data));
-            return data;
+        .then(function (response) {
+          if (response.status === 200) {
+            ls.setItem('users', JSON.stringify(response.data));
+            return response.data;
           } else {
-            return false;
+            return [];
           }
         });
     }
@@ -60,6 +60,10 @@ angular.module('testApp').service('UsersService', function ($http, $q, $window) 
 
     users.push(user);
     ls.setItem('users', JSON.stringify(users));
+  };
+
+  this.delete = function (userData) {
+    this.update(userData, true);
   };
 
   this.update = function (userData, remove) {
