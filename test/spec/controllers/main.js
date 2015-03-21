@@ -2,13 +2,12 @@
 
 describe('controllers', function() {
 
-  // load the controller's module
   beforeEach(module('testApp'));
 
   var ctrl,
     scope,
-    service,
-    $httpBackend;
+    childScope,
+    service;
 
   var users = [
     {
@@ -513,36 +512,91 @@ describe('controllers', function() {
     }
   ];
 
-  beforeEach(inject(function($q) {
-    service = {
-      get: function() {
-        var dfd = $q.defer();
-        dfd.resolve(users);
-        return dfd.promise;
-      }
-    };
-  }));
-
   describe('MainCtrl', function () {
-    beforeEach(inject(function ($controller, $rootScope) {
+    beforeEach(inject(function ($controller, $rootScope, $window, $q) {
+      // mock service
+      var mockFn = function () {
+        var dfd = $q.defer();
+        dfd.resolve(true);
+        return dfd.promise;
+      };
+
+      service = {
+        get: function() {
+          var dfd = $q.defer();
+          dfd.resolve(users);
+          return dfd.promise;
+        },
+
+        'add'   : mockFn,
+        'delete': mockFn,
+        'update': mockFn
+      };
+
+      spyOn(service, 'add').andCallThrough();
+      spyOn(service, 'delete').andCallThrough();
+      spyOn(service, 'update').andCallThrough();
+
       scope = $rootScope.$new();
+      childScope = scope.$new();
+
+      $window.confirm = function(msg) { return true };
 
       ctrl = $controller('MainCtrl', {
-        $scope      : scope
-        , UsersService: service
+        $scope      : scope,
+        $window     : $window,
+        UsersService: service
       });
 
       scope.$digest(); // let it know that we've got users
     }));
 
-    describe('getUserIndexById method', function() {
-      it("should should have users", function () {
-        expect(scope.users.length).not.toEqual(0);
-      });
+    it("create a user", function () {
+      scope.createUser();
 
-      it("should return 1 for user id 1", function () {
-        expect(ctrl.getUserIndexById(1)).toEqual(1);
-      });
+      var usersLen = scope.users.length;
+
+      scope.userFrm = {
+        $setPristine: function () {}
+      };
+
+      // fill in user properties
+      scope.newUser.lastName = 'new last name';
+      scope.newUser.firstName = 'new first name';
+      scope.newUser.age = 25;
+      scope.newUser.email = 'somefakemail@gmail.com';
+      scope.newUser.isActive = true;
+
+      // save it
+      scope.saveUser();
+      scope.$root.$digest();
+
+      // let's check if it's there
+      expect(usersLen).not.toEqual(scope.users.length);
+
+      var lastUser = scope.users.pop();
+      expect(lastUser.email).toEqual('somefakemail@gmail.com');
+    });
+
+    it("update user", function () {
+      var user = childScope.user = scope.users[0],
+          oldAge = user.age;
+
+      user.age += 10;
+      childScope.updateUser();
+      expect(scope.users[0].age).toEqual(oldAge + 10);
+    });
+
+    it("delete user", function () {
+      var len = scope.users.length,
+          nextUserId = scope.users[1].id;
+      childScope.user = scope.users[0];
+
+      childScope.deleteUser();
+      scope.$root.$digest();
+
+      expect(scope.users.length).toEqual(len - 1);
+      expect(scope.users[0].id).toEqual(nextUserId);
     });
   });
 });

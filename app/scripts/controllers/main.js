@@ -67,10 +67,12 @@ function MainCtrl($scope, $window, UsersService) {
     var date = (new Date()).getTime();
     $scope.newUser.created = date;
     $scope.newUser.modified = date;
-    $scope.users.push($scope.newUser);
 
     UsersService.add($scope.newUser).then(function (success) {
-      success && $scope.hideNewUserFrm(success);
+      if (success) {
+        $scope.users.push($scope.newUser);
+        $scope.hideNewUserFrm(success);
+      }
     });
   };
 
@@ -89,9 +91,10 @@ function MainCtrl($scope, $window, UsersService) {
     if ($window.confirm('Are you sure?')) {
       this.user.modified = (new Date()).getTime();
       delete this.user.edit;
+      var _this = this;
       UsersService.update(this.user).then(function (success) {
-        success ? $scope.cancelEditUser.call(this, true) : $scope.restoreUser.call(this);
-      }.bind(this));
+        success ? $scope.cancelEditUser.call(_this, true) : $scope.restoreUser.call(_this);
+      });
     }
   };
 
