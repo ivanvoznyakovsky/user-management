@@ -1,23 +1,38 @@
 'use strict';
 
-angular.module('testApp').service('UsersService', function ($http, $q, $window) {
+angular.module('testApp')
+  .service('UsersService', UsersService);
+
+function UsersService($http, $q, $window) {
   var ls = $window.localStorage,
-    index = {},
-    getLocalUsers = function () {
-      try {
-        var users = ls.getItem('users');
-        users = JSON.parse(users);
-        return users;
-      } catch (e) {
-        this.error = 'Error retrieving users from storage';
-        return false;
-      }
-    };
+    self = this,
+    map = {};
 
-  this.error = false;
+  self.error = {};
 
-  this.isEmailUnique = function (email) {
-    var users = getLocalUsers();
+  function _getLocalUsers() {
+    try {
+      var users = ls.getItem('users');
+      users = JSON.parse(users);
+      return users;
+    } catch (e) {
+      self.error.msg = 'Error retrieving users from storage';
+      return false;
+    }
+  }
+
+  function _buildUsersMap(users) {
+    if (!users) {
+      return false;
+    }
+
+    users.forEach(function (user, idx) {
+      map[user.id] = idx;
+    });
+  }
+
+  function _isEmailUnique(email) {
+    var users = _getLocalUsers();
 
     if (!email || !users) {
       return false;
@@ -30,72 +45,85 @@ angular.module('testApp').service('UsersService', function ($http, $q, $window) 
     }
 
     return true;
-  };
+  }
 
-  this.get = function () {
+
+  self.get = function () {
     var dfd = $q.defer(),
-      savedUsers = getLocalUsers();
+      savedUsers = _getLocalUsers();
+
+    dfd.promise.then(_buildUsersMap);
 
     if (savedUsers) {
       dfd.resolve(savedUsers);
-      return dfd.promise;
     } else {
-      return $http.get('/data/users.json', {responseType: 'json'})
-        .then(function (response) {
-          if (response.status === 200) {
-            ls.setItem('users', JSON.stringify(response.data));
-            return response.data;
-          } else {
-            return [];
-          }
-        });
-    }
-  };
+      $http.get('/data/users.json', {responseType: 'json'}).then(function (response) {
+        var users = response.data || [];
 
-  this.add = function (user) {
-    var users = getLocalUsers();
-    if (!users) {
-      return false;
-    }
-
-    users.push(user);
-    ls.setItem('users', JSON.stringify(users));
-  };
-
-  this.delete = function (userData) {
-    this.update(userData, true);
-  };
-
-  this.update = function (userData, remove) {
-    var users = getLocalUsers();
-    if (!users || !users.length) {
-      this.error = 'Error updating user: no users.';
-      return false;
-    }
-
-    if (!userData || !userData.id) {
-      this.error = 'Error updating user: wrong data.';
-      return false;
-    }
-
-    var idx = index[userData.id];
-    if (!idx) {
-      for (var i = 0; i < users.length; i++) {
-        if (users[i].id === userData.id) {
-          index[userData.id] = i;
-          idx = i;
-          break;
+        if (response.status === 200) {
+          ls.setItem('users', JSON.stringify(users));
         }
-      }
+
+        dfd.resolve(users);
+      });
     }
 
-    if (remove) {
-      users.splice(idx, 1);
-    } else {
-      users[idx] = userData;
-    }
-
-    ls.setItem('users', JSON.stringify(users));
-    return true;
+    return dfd.promise;
   };
-});
+
+  self.add = function (user) {
+    var dfd = $q.defer(),
+      users = _getLocalUsers();
+
+    if (!users || !_isEmailUnique(user.email)) {
+      self.error.msg = 'Email "' + user.email + '" is already used.';
+      dfd.resolve(false);
+    } else {
+      users.push(user);
+      map[user.id] = users.length - 1;
+      ls.setItem('users', JSON.stringify(users));
+      dfd.resolve(true);
+    }
+
+    return dfd.promise;
+  };
+
+  self.delete = function (id) {
+    var dfd = $q.defer(),
+      users = _getLocalUsers(),
+      userIdx = map[id];
+
+    if (!users) {
+      dfd.resolve(false);
+    } else if (undefined === userIdx) {
+      self.error.msg = 'Invalid user id.';
+      dfd.resolve(false);
+    } else {
+      delete map[id];
+      users.splice(userIdx, 1);
+      ls.setItem('users', JSON.stringify(users));
+      dfd.resolve(true);
+    }
+
+    return dfd.promise;
+  };
+
+  self.update = function (user) {
+    var dfd = $q.defer(),
+      users = _getLocalUsers(),
+      userIdx = map[user.id];
+
+    if (!users) {
+      dfd.resolve(false);
+    } else if (undefined === userIdx) {
+      self.error.msg = 'Invalid user id.';
+      dfd.resolve(false);
+    } else {
+      users[userIdx] = user;
+      ls.setItem('users', JSON.stringify(users));
+      dfd.resolve(true);
+    }
+
+    return dfd.promise;
+  };
+}

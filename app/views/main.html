@@ -11,7 +11,7 @@
 </div>
 <div class="row">
     <div class="col-xs-8">
-        <paging total-items="users.length" ng-model="page"></paging>
+      <paging total-items="users.length" page-size="pagination.pageSize" page="pagination.page"></paging>
     </div>
     <div class="col-xs-4">
         <button type="button" class="btn btn-success btn-add-user" ng-click="createUser()">
@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<alert type="danger" closable="1" ng-show="error"><strong>Oh snap!</strong> {{error}}</alert>
+<alert type="danger" closable="1" ng-show="error.msg"><strong>Oh snap!</strong> {{error.msg}}</alert>
 
 <form name="userFrm" novalidate>
     <p class="text-danger text-right"><small>* - click "Edit" button or double click a row to edit user</small></p>
@@ -49,7 +49,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-if="showNewUser && !editUserId" ng-form="newUserFrm">
+        <tr ng-if="newUser.id" ng-form="newUserFrm">
           <td>
             <input ng-model="newUser.id" type="hidden"/>
             <input ng-model="newUser.lastName" class="form-control" required type="text" placeholder="Enter last name"/>
@@ -65,7 +65,7 @@
           </td>
           <td>
             <div class="pull-right">
-              <button type="button" class="btn btn-default btn-sm" ng-click="cancelCreateUser()">
+              <button type="button" class="btn btn-default btn-sm" ng-click="hideNewUserFrm()">
                 <span class="glyphicon glyphicon-remove"></span> Cancel
               </button>
               <button type="button" class="btn btn-default btn-sm" ng-click="saveUser()" ng-disabled="newUserFrm.$invalid">
@@ -75,30 +75,30 @@
           </td>
         </tr>
 
-        <tr ng-dblclick="editUser()" ng-repeat="user in users | filter:filterVal | orderBy:sortColumn:sortReverse | startFrom:getOffset() | limitTo:itemsPerPage track by user.id">
+        <tr ng-dblclick="editUser()" ng-repeat="user in users | filter:filterVal | orderBy:sortColumn:sortReverse | startFrom:getOffset() | limitTo:pagination.pageSize track by user.id">
             <td>
-                <span ng-hide="editUserId === user.id">{{user.lastName}}</span>
-                <input type="text" class="form-control" ng-if="editUserId === user.id" ng-model="editUserModel.lastName" required/>
+                <span ng-if="!user.edit">{{user.lastName}}</span>
+                <input type="text" class="form-control" ng-if="user.edit" ng-model="user.lastName" required/>
             </td>
             <td>
-                <span ng-hide="editUserId === user.id">{{user.firstName}}</span>
-                <input type="text" class="form-control" ng-if="editUserId === user.id" ng-model="editUserModel.firstName" required/>
+                <span ng-if="!user.edit">{{user.firstName}}</span>
+                <input type="text" class="form-control" ng-if="user.edit" ng-model="user.firstName" required/>
             </td>
             <td>
-                <span ng-hide="editUserId === user.id">{{user.age}}</span>
-                <input type="number" class="form-control" ng-if="editUserId === user.id" ng-model="editUserModel.age"/>
+                <span ng-if="!user.edit">{{user.age}}</span>
+                <input type="number" class="form-control" ng-if="user.edit" ng-model="user.age"/>
             </td>
             <td>
-                <span ng-hide="editUserId === user.id">{{user.email}}</span>
-                <input type="email" class="form-control" ng-if="editUserId === user.id" ng-model="editUserModel.email" required/>
+                <span ng-if="!user.edit">{{user.email}}</span>
+                <input type="email" class="form-control" ng-if="user.edit" ng-model="user.email" required/>
             </td>
-            <td><span ng-hide="editUserId === user.id">{{user.created | date:'medium'}}</span></td>
-            <td><span ng-hide="editUserId === user.id">{{user.modified | date:'medium'}}</span></td>
+            <td><span ng-if="!user.edit">{{user.created | date:'medium'}}</span></td>
+            <td><span ng-if="!user.edit">{{user.modified | date:'medium'}}</span></td>
             <td>
-                <label class="btn btn-default btn-sm" ng-if="editUserId === user.id">
-                    <input type="checkbox" ng-model="editUserModel.isActive" value="editUserModel.isActive" ng-checked="editUserModel.isActive"/> Active
+                <label class="btn btn-default btn-sm" ng-if="user.edit">
+                    <input type="checkbox" ng-model="user.isActive" value="user.isActive" ng-checked="user.isActive"/> Active
                 </label>
-                <div ng-hide="editUserId === user.id">
+                <div ng-if="!user.edit">
                     <button type="button" class="btn btn-default disabled btn-sm" ng-if="user.isActive">
                         <span class="glyphicon glyphicon-check"></span>
                     </button>
@@ -106,18 +106,18 @@
 
             </td>
             <td>
-                <div ng-if="editUserId === user.id" class="pull-right">
+                <div ng-if="user.edit" class="pull-right">
                     <button type="button" class="btn btn-default btn-sm" ng-click="cancelEditUser()">
                         <span class="glyphicon glyphicon-remove"></span> Cancel
                     </button>
-                    <button type="button" class="btn btn-default btn-sm" ng-disabled="!userFrm.$dirty" ng-click="restoreEditUser()">
+                    <button type="button" class="btn btn-default btn-sm" ng-disabled="!userFrm.$dirty" ng-click="restoreUser()">
                         <span class="glyphicon glyphicon-repeat"></span> Restore
                     </button>
                     <button type="button" class="btn btn-default btn-sm" ng-disabled="!userFrm.$dirty || userFrm.$invalid" ng-click="updateUser()">
                         <span class="glyphicon glyphicon-ok-circle"></span> Update
                     </button>
                 </div>
-                <div class="pull-right" ng-hide="editUserId === user.id">
+                <div class="pull-right" ng-if="!user.edit">
                     <button type="button" class="btn btn-default btn-sm" ng-click="editUser()">
                         <span class="glyphicon glyphicon-edit"></span> Edit
                     </button>
@@ -132,4 +132,4 @@
 </form>
 <p class="text-danger text-right"><small>* - click "Edit" button or double click a row to edit user</small></p>
 
-<paging total-items="users.length" ng-model="page"></paging>
+<paging total-items="users.length" page-size="pagination.pageSize" page="pagination.page"></paging>
