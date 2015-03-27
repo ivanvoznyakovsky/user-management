@@ -4,15 +4,13 @@ describe('Controllers', function() {
 
   var $rootScope, ctrl, scope, childScope, service;
 
-  beforeEach(function () {
-    module('testApp');
+  beforeEach(module('testApp'));
 
-    inject(function (_$rootScope_) {
-      $rootScope = _$rootScope_;
-    })
-  });
+  beforeEach(inject(function (_$rootScope_) {
+    $rootScope = _$rootScope_;
+  }));
 
-  describe('Main', function () {
+  describe('GridCtrl', function () {
     var users;
 
     beforeEach(inject(function ($controller, $window, $q) {
@@ -57,7 +55,7 @@ describe('Controllers', function() {
           return dfd.promise;
         },
 
-        'add'   : mockFn,
+        'create': mockFn,
         'delete': mockFn,
         'update': mockFn
       };
@@ -71,10 +69,10 @@ describe('Controllers', function() {
 
       $window.confirm = function() { return true };
 
-      ctrl = $controller('MainCtrl', {
+      ctrl = $controller('GridCtrl', {
         $scope      : scope,
         $window     : $window,
-        UsersService: service
+        usersService: service
       });
 
       scope.$digest(); // let it know that we've got users
@@ -86,17 +84,17 @@ describe('Controllers', function() {
     });
 
     it("should create a user", function () {
-      scope.createUser();
-
       // fill in user properties
-      scope.newUser.lastName = 'new last name';
-      scope.newUser.firstName = 'new first name';
-      scope.newUser.email = 'somefakemail@gmail.com';
+      scope.newUser = {
+        lastName : 'new last name',
+        firstName: 'new first name',
+        email    : 'somefakemail@gmail.com'
+      };
 
       var usersLen = scope.users.length;
 
       // save it
-      scope.saveUser();
+      scope.createUser();
       $rootScope.$digest();
 
       // let's check if it's there
@@ -106,21 +104,11 @@ describe('Controllers', function() {
       expect(lastUser.email).toEqual('somefakemail@gmail.com');
     });
 
-    it("should update user", function () {
-      var user = childScope.user = scope.users[0],
-          newFirstName = 'My new first name';
-
-      user.firstName = newFirstName;
-      childScope.updateUser();
-      expect(scope.users[0].firstName).toEqual(newFirstName);
-    });
-
     it("should delete user", function () {
       var len = scope.users.length,
           nextUserId = scope.users[1].id;
-      childScope.user = scope.users[0];
 
-      childScope.deleteUser();
+      childScope.deleteUser(scope.users[0]);
       $rootScope.$digest();
 
       expect(scope.users.length).toEqual(len - 1);

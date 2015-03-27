@@ -3,22 +3,20 @@
 describe('Services', function () {
   var $httpBackend, $rootScope;
 
+  beforeEach(module('testApp'));
 
-  beforeEach(function () {
-    module('testApp');
-
-    inject(function($injector) {
+  beforeEach(inject(function($injector) {
       $rootScope = $injector.get('$rootScope');
       $httpBackend = $injector.get('$httpBackend');
-    });
-  });
+    })
+  );
 
   describe('Users', function() {
-    var UsersService, users;
+    var usersService, users;
 
     beforeEach(function () {
       inject(function($injector) {
-        UsersService = $injector.get('UsersService');
+        usersService = $injector.get('usersService');
 
         $injector.get('$window').localStorage.removeItem('users');
 
@@ -50,7 +48,7 @@ describe('Services', function () {
     });
 
     it('should get list of users', function () {
-      UsersService.get().then(function (userList) {
+      usersService.get().then(function (userList) {
         expect(userList.length).toEqual(users.length);
       });
 
@@ -58,19 +56,19 @@ describe('Services', function () {
     });
 
     it('should add new user', function () {
-      UsersService.get().then(function (userList) {
+      usersService.get().then(function (userList) {
         var user = {
-          id       : userList.slice(-1)[0].id + 1,
+          id       : userList.pop().id + 1,
           lastName : 'new last name',
           firstName: 'new first name',
           email    : 'somefakemail@gmail.com'
         };
 
-        UsersService.add(user).then(function (success) {
+        usersService.create(user).then(function (success) {
           expect(success).toEqual(true);
 
-          UsersService.get().then(function (userList) {
-            expect(userList.slice(-1)[0].email).toEqual(user.email);
+          usersService.get().then(function (userList) {
+            expect(userList.pop().email).toEqual(user.email);
           });
         });
       });
@@ -80,8 +78,8 @@ describe('Services', function () {
 
 
     it('should fail adding new user', function () {
-      UsersService.get().then(function (userList) {
-        var last = userList.slice(-1)[0],
+      usersService.get().then(function (userList) {
+        var last = userList.pop(),
           len = users.length,
           user = {
             id       : last.id + 1,
@@ -92,10 +90,10 @@ describe('Services', function () {
             isActive : true
           };
 
-        UsersService.add(user).then(function (success) {
+        usersService.create(user).then(function (success) {
           expect(success).toEqual(false);
 
-          UsersService.get().then(function (userList) {
+          usersService.get().then(function (userList) {
             expect(userList.length).toEqual(len);
           });
         });
@@ -105,15 +103,15 @@ describe('Services', function () {
     });
 
     it('should update user by id', function () {
-      UsersService.get().then(function (userList) {
-        var user = userList.slice(-1)[0];
+      usersService.get().then(function (userList) {
+        var user = userList.pop();
         user.email = 'newusermail@gmail.com';
 
-        UsersService.update(user).then(function (success) {
+        usersService.update(user).then(function (success) {
           expect(success).toEqual(true);
 
-          UsersService.get().then(function (userList) {
-            expect(userList.slice(-1)[0].email).toEqual(user.email);
+          usersService.get().then(function (userList) {
+            expect(userList.pop().email).toEqual(user.email);
           });
         });
       });
@@ -122,14 +120,14 @@ describe('Services', function () {
     });
 
     it('should delete user by id', function () {
-      UsersService.get().then(function (userList) {
-        var user = userList.slice(-1)[0];
+      usersService.get().then(function (userList) {
+        var user = userList.pop();
 
-        UsersService.delete(user.id).then(function (success) {
+        usersService.delete(user.id).then(function (success) {
           expect(success).toEqual(true);
 
-          UsersService.get().then(function (userList) {
-            expect(userList.slice(-1)[0].id).not.toEqual(user.id);
+          usersService.get().then(function (userList) {
+            expect(userList.pop().id).not.toEqual(user.id);
           });
         });
       });
