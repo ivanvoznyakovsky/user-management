@@ -2,18 +2,19 @@
 
 describe('Controllers', function() {
 
-  var $rootScope, ctrl, scope, childScope, service;
+  var $rootScope, $window, ctrl, scope, childScope, service;
 
   beforeEach(module('testApp'));
 
-  beforeEach(inject(function (_$rootScope_) {
+  beforeEach(inject(function (_$rootScope_, _$window_) {
     $rootScope = _$rootScope_;
+    $window = _$window_;
   }));
 
   describe('GridCtrl', function () {
     var users;
 
-    beforeEach(inject(function ($controller, $window, $q) {
+    beforeEach(inject(function ($controller, $q) {
       // mock service
       var mockFn = function () {
         var dfd = $q.defer();
@@ -80,7 +81,7 @@ describe('Controllers', function() {
 
     it("should have list of users", function () {
       expect(scope.users).toBeDefined();
-      expect(scope.users.length).toEqual(users.length);
+      expect(scope.users.length).toBe(users.length);
     });
 
     it("should create a user", function () {
@@ -98,10 +99,10 @@ describe('Controllers', function() {
       $rootScope.$digest();
 
       // let's check if it's there
-      expect(usersLen).not.toEqual(scope.users.length);
+      expect(usersLen).not.toBe(scope.users.length);
 
       var lastUser = scope.users.pop();
-      expect(lastUser.email).toEqual('somefakemail@gmail.com');
+      expect(lastUser.email).toBe('somefakemail@gmail.com');
     });
 
     it("should delete user", function () {
@@ -111,8 +112,21 @@ describe('Controllers', function() {
       childScope.deleteUser(scope.users[0]);
       $rootScope.$digest();
 
-      expect(scope.users.length).toEqual(len - 1);
-      expect(scope.users[0].id).toEqual(nextUserId);
+      expect(scope.users.length).toBe(len - 1);
+      expect(scope.users[0].id).toBe(nextUserId);
+    });
+
+    it("should not delete user if not confirmed", function () {
+      $window.confirm = function() { return false };
+
+      var len = scope.users.length,
+          firstUserId = scope.users[0].id;
+
+      childScope.deleteUser(scope.users[0]);
+      $rootScope.$digest();
+
+      expect(scope.users.length).toBe(len);
+      expect(scope.users[0].id).toBe(firstUserId);
     });
   });
 });

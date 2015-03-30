@@ -51,29 +51,29 @@ describe('Directives', function () {
     it('should have correct total pages count', function () {
       // initial value
       var totalPages = Math.ceil($scope.items.length / $scope.pageSize);
-      expect($isolatedScope.totalPages).toEqual(totalPages);
+      expect($isolatedScope.totalPages).toBe(totalPages);
 
       // double amount of items in parent scope
       $scope.items = $scope.items.concat($scope.items);
       $scope.$digest();
-      expect($isolatedScope.totalPages).toEqual(totalPages * 2);
+      expect($isolatedScope.totalPages).toBe(totalPages * 2);
     });
 
-    it('should have no previous page', function () {
+    it('should have no previous page when on first page', function () {
       $isolatedScope.selectPage(1);
-      expect($isolatedScope.noPrevious()).toEqual(true);
+      expect($isolatedScope.noPrevious()).toBe(true);
     });
 
-    it('should have no next page', function () {
+    it('should have no next page when on last page', function () {
       $isolatedScope.selectPage($isolatedScope.totalPages);
-      expect($isolatedScope.noNext()).toEqual(true);
+      expect($isolatedScope.noNext()).toBe(true);
     });
 
     it('should have both next and prev page', function () {
       $isolatedScope.selectPage(Math.ceil($isolatedScope.totalPages / 2));
       $isolatedScope.$digest();
-      expect($isolatedScope.noNext()).toEqual(false);
-      expect($isolatedScope.noPrevious()).toEqual(false);
+      expect($isolatedScope.noNext()).toBe(false);
+      expect($isolatedScope.noPrevious()).toBe(false);
     });
   })
 });

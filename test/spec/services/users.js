@@ -49,7 +49,7 @@ describe('Services', function () {
 
     it('should get list of users', function () {
       usersService.get().then(function (userList) {
-        expect(userList.length).toEqual(users.length);
+        expect(userList.length).toBe(users.length);
       });
 
       $httpBackend.flush();
@@ -65,10 +65,10 @@ describe('Services', function () {
         };
 
         usersService.create(user).then(function (success) {
-          expect(success).toEqual(true);
+          expect(success).toBe(true);
 
           usersService.get().then(function (userList) {
-            expect(userList.pop().email).toEqual(user.email);
+            expect(userList.pop().email).toBe(user.email);
           });
         });
       });
@@ -91,10 +91,10 @@ describe('Services', function () {
           };
 
         usersService.create(user).then(function (success) {
-          expect(success).toEqual(false);
+          expect(success).toBe(false);
 
           usersService.get().then(function (userList) {
-            expect(userList.length).toEqual(len);
+            expect(userList.length).toBe(len);
           });
         });
       });
@@ -108,10 +108,10 @@ describe('Services', function () {
         user.email = 'newusermail@gmail.com';
 
         usersService.update(user).then(function (success) {
-          expect(success).toEqual(true);
+          expect(success).toBe(true);
 
           usersService.get().then(function (userList) {
-            expect(userList.pop().email).toEqual(user.email);
+            expect(userList.pop().email).toBe(user.email);
           });
         });
       });
@@ -124,10 +124,10 @@ describe('Services', function () {
         var user = userList.pop();
 
         usersService.delete(user.id).then(function (success) {
-          expect(success).toEqual(true);
+          expect(success).toBe(true);
 
           usersService.get().then(function (userList) {
-            expect(userList.pop().id).not.toEqual(user.id);
+            expect(userList.pop().id).not.toBe(user.id);
           });
         });
       });
