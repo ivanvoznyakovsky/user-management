@@ -6,25 +6,11 @@
     .directive('paging', pagingDirective);
 
   function PagingDirectiveCtrl($scope) {
-    var self = this;
-
-    this.setTotalPages = function () {
-      var totalPages = $scope.pageSize < 1 ? 1 : Math.ceil($scope.totalItems / $scope.pageSize);
-      return Math.max(totalPages || 0, 1);
-    };
-
-    this.init = function () {
-      $scope.totalPages = self.setTotalPages();
-      $scope.page = $scope.page || 1;
-    };
-
     $scope.selectPage = function (page) {
-      if ($scope.disabled) {
-        return false;
-      }
-
-      if ($scope.page !== page && page > 0 && page <= $scope.totalPages) {
-        $scope.page = page;
+      if (!$scope.disabled) {
+        if ($scope.page !== page && page > 0 && page <= $scope.totalPages) {
+          $scope.page = page;
+        }
       }
     };
 
@@ -42,8 +28,9 @@
       return 'Showing ' + from + '-' + to + ' of ' + $scope.totalItems + ' users';
     };
 
-    $scope.$watch('totalItems', function () {
-      $scope.totalPages = self.setTotalPages();
+    $scope.$watch('totalItems', function (totalItems) {
+      var totalPages = $scope.pageSize < 1 ? 1 : Math.ceil(totalItems / $scope.pageSize);
+      $scope.totalPages = Math.max(totalPages || 0, 1);
     });
 
     $scope.$watch('totalPages', function (value) {
@@ -68,10 +55,7 @@
       '<li ng-class="{disabled: disabled}" ng-hide="noPrevious()"><a href ng-click="selectPage(page - 1)">&laquo; Previous {{pageSize}} users</a></li>\n' +
       '<li class="disabled"><span>{{getShowingText()}}</span></li>\n' +
       '<li ng-class="{disabled: disabled}" ng-hide="noNext()"><a href ng-click="selectPage(page + 1)">Next {{pageSize}} users &raquo;</a></li>\n' +
-      '</ul>',
-      link      : function (scope, element, attrs, pagingCtrl) {
-        pagingCtrl.init();
-      }
+      '</ul>'
     };
   }
 })();

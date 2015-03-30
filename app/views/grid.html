@@ -62,7 +62,7 @@
           </td>
         </tr>
         <tr ng-dblclick="editUser(user)"
-            ng-repeat="user in users | filter:filter.value | orderBy:sortColumn:sortReverse | startFrom:getOffset() | limitTo:pagination.pageSize track by user.id">
+            ng-repeat="user in users | filter:filter | orderBy:sortColumn:sortReverse | startFrom:getOffset() | limitTo:pagination.pageSize track by user.id">
           <td>
             <span ng-if="!user.edit">{{user.lastName}}</span>
             <input type="text" class="form-control" ng-if="user.edit" ng-model="user.lastName" required/>

@@ -23,29 +23,27 @@
     }
 
     function _buildUsersMap(users) {
-      if (!users) {
-        return false;
-      }
-
-      users.forEach(function (user, idx) {
+      (users || []).forEach(function (user, idx) {
         map[user.id] = idx;
       });
     }
 
     function _isEmailUnique(email) {
-      var users = _getLocalUsers();
+      var users = _getLocalUsers(),
+        isUnique = true;
 
       if (!email || !users) {
-        return false;
+        isUnique = false;
       }
 
       for (var i = 0; i < users.length; i++) {
         if (email === users[i].email) {
-          return false;
+          isUnique = false;
+          break;
         }
       }
 
-      return true;
+      return isUnique;
     }
 
 

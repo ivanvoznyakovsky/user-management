@@ -6,10 +6,7 @@
     .service('appState', appState);
 
   function appState() {
-    this.filter = {
-      value: ''
-    };
-
+    this.filter = {};
     this.hasUnsavedData = false;
   }
 })();

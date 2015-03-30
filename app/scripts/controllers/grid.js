@@ -63,8 +63,6 @@
 
     $scope.hideNewUserFrm = function (userCreated) {
       $scope.newUserFrmVisible = false;
-
-      delete $scope.newUser;
       $scope.newUser = {};
       $scope.userFrm.$setPristine();
 
@@ -93,7 +91,6 @@
       delete originalUserData.id;
 
       user.edit = true;
-      return false;
     };
 
     $scope.updateUser = function (user) {
@@ -123,7 +120,7 @@
     // got to first page when start filtering
     // return to page before filtering when filter value is empty
     var pageBeforeFilter;
-    $scope.$watch('filter.value.$', function (filterValue) {
+    $scope.$watch('filter.$', function (filterValue) {
       var disable = $scope.pagination.disabled = !!filterValue,
         page = pageBeforeFilter || 1;
 
