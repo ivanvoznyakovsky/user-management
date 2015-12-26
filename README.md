@@ -1,4 +1,3 @@
-[![Build Status](https://semaphoreci.com/api/v1/projects/2e44e28a-8acc-4bfc-a19f-eaf6ccff2615/645393/shields_badge.svg)](https://semaphoreci.com/lockheedman/user-management)
 User management
 =====
 
